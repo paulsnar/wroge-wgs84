@@ -16,6 +16,10 @@ func EPSG(code int) CRS {
 	var crs CRS
 
 	switch code {
+	case 2056:
+		crs = Swiss(true)
+	case 21781:
+		crs = Swiss(false)
 	case 2154:
 		crs = LambertConformalConic2SP(EPSG(4171), 3, 46.5, 49, 44, 700000, 6600000)
 	case 2157:
