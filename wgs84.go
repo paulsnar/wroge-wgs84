@@ -1011,6 +1011,110 @@ func (p krovak) ToBase(east, north, h float64) (lon, lat, h2 float64) {
 	return degree(lambda), degree(phi), h
 }
 
+func Swiss(lv95 bool) CRS {
+	return swiss{
+		lv95:     lv95,
+		base:     EPSG(4326),
+		spheroid: NewSpheroid(6377397.155, 299.1528128),
+	}
+}
+
+type swiss struct {
+	lv95     bool
+	base     CRS
+	spheroid Spheroid
+}
+
+func (p swiss) Base() CRS {
+	return p.base
+}
+
+func (p swiss) Spheroid() Spheroid {
+	return p.spheroid
+}
+
+func (p swiss) ToBase(east, north, h float64) (float64, float64, float64) {
+	if p.lv95 {
+		east, north = p.lv95ToLv03(east, north)
+	}
+
+	return p.lv03ToWgs84(east, north, h)
+}
+
+func (p swiss) FromBase(lon, lat, h float64) (float64, float64, float64) {
+	x, y, h2 := p.wgs84ToLv03(lon, lat, h)
+
+	if p.lv95 {
+		x, y = p.lv03ToLv95(x, y)
+	}
+
+	return x, y, h2
+}
+
+func (p swiss) lv95ToLv03(east, north float64) (float64, float64) {
+	east -= 2000000.00
+	north -= 1000000.00
+
+	return east, north
+}
+
+func (p swiss) lv03ToLv95(east, north float64) (float64, float64) {
+	east += 2000000.00
+	north += 1000000.00
+
+	return east, north
+}
+
+// Convert decimal angle (° dec) to sexagesimal angle (dd.mmss,ss)
+func (p swiss) decToSexAngle(dec float64) float64 {
+	deg := math.Floor(dec)
+	minute := math.Floor((dec - deg) * 60)
+	second := (((dec - deg) * 60) - minute) * 60
+
+	return second + minute*60.0 + deg*3600.0
+}
+
+func (p swiss) lv03ToWgs84(east float64, north float64, h float64) (float64, float64, float64) {
+	// Converts military to civil and to unit = 1000km:
+	// - Military (for LV03): normally used national coordinates. Origin of the coordinates 600'000/200'000 m in Bern (= LTOP ‘MI’).
+	// - Civil (for LV03): old format, currently still used in Liechtenstein. Origin of the coordinates 0/0 m in Bern (= LTOP ‘ZI’).
+	eastAux := (east - 600000) / 1000000
+	northAux := (north - 200000) / 1000000
+
+	// Convert latitude (north, y) and longitude (east, x)
+	lat := (16.9023892 + (3.238272 * northAux)) - (0.270978 * math.Pow(eastAux, 2)) - (0.002528 * math.Pow(northAux, 2)) - (0.0447 * math.Pow(eastAux, 2) * northAux) - (0.0140 * math.Pow(northAux, 3))
+	lon := (2.6779094 + (4.728982 * eastAux) + (0.791484 * eastAux * northAux) + (0.1306 * eastAux * math.Pow(northAux, 2))) - (0.0436 * math.Pow(eastAux, 3))
+
+	// Unit 10000" to 1 " and converts seconds to degrees (dec)
+	lat = (lat * 100) / 36
+	lon = (lon * 100) / 36
+
+	// Convert height
+	h2 := (h + 49.55) - (12.60 * eastAux) - (22.64 * northAux)
+
+	return lon, lat, h2
+}
+
+func (p swiss) wgs84ToLv03(lon float64, lat float64, h float64) (float64, float64, float64) {
+	lat = p.decToSexAngle(lat)
+	lon = p.decToSexAngle(lon)
+
+	// Auxiliary values (...Bern)
+	latAux := (lat - 169028.66) / 10000
+	lonAux := (lon - 26782.5) / 10000
+
+	// Convert longitude (east, x)
+	x := (600072.37 + (211455.93 * lonAux)) - (10938.51 * lonAux * latAux) - (0.36 * lonAux * math.Pow(latAux, 2)) - (44.54 * math.Pow(lonAux, 3))
+
+	// Convert latitude (north, y)
+	y := ((200147.07 + (308807.95 * latAux) + (3745.25 * math.Pow(lonAux, 2)) + (76.63 * math.Pow(latAux, 2))) - (194.56 * math.Pow(lonAux, 2) * latAux)) + (119.79 * math.Pow(latAux, 3))
+
+	// Convert height
+	h = (h - 49.55) + (2.73 * lonAux) + (6.94 * latAux)
+
+	return x, y, h
+}
+
 func sin2(r float64) float64 {
 	return math.Pow(math.Sin(r), 2)
 }
