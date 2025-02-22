@@ -1035,7 +1035,7 @@ func (p swiss) Spheroid() Spheroid {
 
 func (p swiss) ToBase(east, north, h float64) (float64, float64, float64) {
 	if p.lv95 {
-		east, north = p.lv95lv03(east, north)
+		east, north = p.lv95ToLv03(east, north)
 	}
 
 	return p.lv03ToWgs84(east, north, h)
@@ -1045,20 +1045,20 @@ func (p swiss) FromBase(lon, lat, h float64) (float64, float64, float64) {
 	x, y, h2 := p.wgs84ToLv03(lon, lat, h)
 
 	if p.lv95 {
-		x, y = p.lv03lv95(x, y)
+		x, y = p.lv03ToLv95(x, y)
 	}
 
 	return x, y, h2
 }
 
-func (p swiss) lv95lv03(east, north float64) (float64, float64) {
+func (p swiss) lv95ToLv03(east, north float64) (float64, float64) {
 	east -= 2000000.00
 	north -= 1000000.00
 
 	return east, north
 }
 
-func (p swiss) lv03lv95(east, north float64) (float64, float64) {
+func (p swiss) lv03ToLv95(east, north float64) (float64, float64) {
 	east += 2000000.00
 	north += 1000000.00
 
