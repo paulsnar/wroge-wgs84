@@ -1,4 +1,4 @@
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/wroge/sqlt@v0.2.0-alpha.13)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/wroge/wgs84@v2.0.0-alpha.13)
 
 ## WGS84 - Coordinate Transformations
 
