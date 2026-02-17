@@ -47,6 +47,10 @@ func (s spheroid) e6() float64 {
 	return s.e4() * s.e2()
 }
 
+func (s spheroid) ep2() float64 {
+	return s.e2() / (1 - s.e2())
+}
+
 func (s spheroid) ei() float64 {
 	return (1 - math.Sqrt(1-s.e2())) / (1 + math.Sqrt(1-s.e2()))
 }

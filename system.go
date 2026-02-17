@@ -37,15 +37,15 @@ func (p transverseMercator) ToLonLat(east, north float64, s Spheroid) (lon, lat 
 		(21*sph.ei2()/16-55*sph.ei4()/32)*math.Sin(4*μ) +
 		(151*sph.ei3()/96)*math.Sin(6*μ) +
 		(1097*sph.ei4()/512)*math.Sin(8*μ)
-	R1 := sph.A() * (1 - sph.e2()) / math.Pow(1-sph.e2()*sin2(φ1), 3/2)
+	R1 := sph.A() * (1 - sph.e2()) / math.Pow(1-sph.e2()*sin2(φ1), 3.0/2)
 	D := east / (p._N(φ1, sph) * p.scale)
 	φ := φ1 - (p._N(φ1, sph)*math.Tan(φ1)/R1)*(D*D/2-(5+3*p._T(φ1)+10*
-		p._C(φ1, sph)-4*p._C(φ1, sph)*p._C(φ1, sph)-9*sph.ei2())*
+		p._C(φ1, sph)-4*p._C(φ1, sph)*p._C(φ1, sph)-9*sph.ep2())*
 		math.Pow(D, 4)/24+(61+90*p._T(φ1)+298*p._C(φ1, sph)+45*p._T(φ1)*
-		p._T(φ1)-252*sph.ei2()-3*p._C(φ1, sph)*p._C(φ1, sph))*
+		p._T(φ1)-252*sph.ep2()-3*p._C(φ1, sph)*p._C(φ1, sph))*
 		math.Pow(D, 6)/720)
 	λ := radian(p.lonf) + (D-(1+2*p._T(φ1)+p._C(φ1, sph))*D*D*D/6+(5-2*p._C(φ1, sph)+
-		28*p._T(φ1)-3*p._C(φ1, sph)*p._C(φ1, sph)+8*sph.ei2()+24*p._T(φ1)*p._T(φ1))*
+		28*p._T(φ1)-3*p._C(φ1, sph)*p._C(φ1, sph)+8*sph.ep2()+24*p._T(φ1)*p._T(φ1))*
 		math.Pow(D, 5)/120)/math.Cos(φ1)
 
 	return degree(λ), degree(φ)
@@ -56,12 +56,12 @@ func (p transverseMercator) FromLonLat(lon, lat float64, s Spheroid) (east, nort
 	φ := radian(lat)
 	A := (radian(lon) - radian(p.lonf)) * math.Cos(φ)
 	east = p.scale*p._N(φ, sph)*(A+(1-p._T(φ)+p._C(φ, sph))*
-		math.Pow(A, 3)/6+(5-18*p._T(φ)+p._T(φ)*p._T(φ)+72*p._C(φ, sph)-58*sph.ei2())*
+		math.Pow(A, 3)/6+(5-18*p._T(φ)+p._T(φ)*p._T(φ)+72*p._C(φ, sph)-58*sph.ep2())*
 		math.Pow(A, 5)/120) + p.eastf
 	north = p.scale*(p._M(φ, sph)-p._M(radian(p.latf), sph)+p._N(φ, sph)*math.Tan(φ)*
 		(A*A/2+(5-p._T(φ)+9*p._C(φ, sph)+4*p._C(φ, sph)*p._C(φ, sph))*
 			math.Pow(A, 4)/24+(61-58*p._T(φ)+p._T(φ)*p._T(φ)+600*
-			p._C(φ, sph)-330*sph.ei2())*math.Pow(A, 6)/720)) + p.northf
+			p._C(φ, sph)-330*sph.ep2())*math.Pow(A, 6)/720)) + p.northf
 
 	return east, north
 }
@@ -82,7 +82,7 @@ func (transverseMercator) _T(φ float64) float64 {
 }
 
 func (transverseMercator) _C(φ float64, sph spheroid) float64 {
-	return sph.ei2() * cos2(φ)
+	return sph.ep2() * cos2(φ)
 }
 
 type lambertConformalConic2SP struct {
